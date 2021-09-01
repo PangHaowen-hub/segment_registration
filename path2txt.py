@@ -11,7 +11,7 @@ def get_listdir(path):  # 获取目录下所有gz格式文件的地址，返回�
 
 
 save_path = r"F:\segment_registration\Registration\original_image\test.txt"
-dir_path = r"F:/segment_registration/Registration/original_image/RL_lobe_norm/"  # 文件路径
+dir_path = r"F:/segment_registration/Registration/original_image/RL_lobe_Similarity/"  # 文件路径
 path_list = get_listdir(dir_path)  # 遍历整个文件夹下的文件name并返回一个列表
 path_list.sort()
 

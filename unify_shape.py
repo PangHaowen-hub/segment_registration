@@ -16,14 +16,18 @@ def get_listdir(path):
 def u_shape(img_path, shape, save_path):
     img_sitk = sitk.ReadImage(img_path)
     img_arr = sitk.GetArrayFromImage(img_sitk)
-    print(shape)
-    print(img_arr.shape)
-    x = (shape[0] - img_arr.shape[0]) / 2
-    y = (shape[0] - img_arr.shape[0]) / 2
-    z = (shape[0] - img_arr.shape[0]) / 2
+    print(shape, '=>', img_arr.shape)
+    x0 = (shape[0] - img_arr.shape[0]) // 2
+    x1 = shape[0] - img_arr.shape[0] - x0
 
-    new_model = np.zeros(shape)
-    new_model[x:, y:, z:] = img_arr
+    y0 = (shape[1] - img_arr.shape[1]) // 2
+    y1 = shape[1] - img_arr.shape[1] - y0
+
+    z0 = (shape[2] - img_arr.shape[2]) // 2
+    z1 = shape[2] - img_arr.shape[2] - z0
+
+    new_model = np.ones(shape) * -1000
+    new_model[x0:-x1, y0:-y1, z0:-z1] = img_arr
 
     new_mask_img = sitk.GetImageFromArray(new_model)
     new_mask_img.SetSpacing(img_sitk.GetSpacing())
@@ -34,7 +38,7 @@ def u_shape(img_path, shape, save_path):
 
 
 if __name__ == '__main__':
-    shape = [345, 317, 240]
+    shape = [352, 352, 256]
     img_path = r'F:\segment_registration\Registration\original_image\RL_lobe'
     save_path = r'F:\segment_registration\Registration\original_image\RL_lobe_unify'
     l_img = get_listdir(img_path)

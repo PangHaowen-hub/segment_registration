@@ -2,6 +2,8 @@ import SimpleITK as sitk
 import os
 import numpy as np
 import tqdm
+import copy
+
 
 def get_listdir(path):
     tmp_list = []
@@ -12,12 +14,22 @@ def get_listdir(path):
     return tmp_list
 
 
-def crop(img_path, mask_path, save_path):
+def crop(img_path, lobe_mask_path, airway_mask_path, save_path):
     img_sitk = sitk.ReadImage(img_path)
     img_arr = sitk.GetArrayFromImage(img_sitk)
-    mask_sitk = sitk.ReadImage(mask_path)
-    mask_arr = sitk.GetArrayFromImage(mask_sitk)
-    img_arr[mask_arr != 3] = 0
+    lobe_mask_sitk = sitk.ReadImage(lobe_mask_path)
+    lobe_mask_arr = sitk.GetArrayFromImage(lobe_mask_sitk)
+    airway_mask_sitk = sitk.ReadImage(airway_mask_path)
+    airway_mask_arr = sitk.GetArrayFromImage(airway_mask_sitk)
+    img_arr[lobe_mask_arr != 3] = 0
+    lobe_mask_arr[lobe_mask_arr != 3] = 0
+    temp = np.zeros_like(airway_mask_arr)
+    temp[airway_mask_arr == 6] = 6
+    temp[airway_mask_arr == 15] = 15
+    temp[airway_mask_arr == 18] = 18
+    temp[airway_mask_arr == 19] = 19
+    temp[airway_mask_arr == 20] = 20
+    airway_mask_arr = temp
     print(img_arr.shape, end=" ")
     for axis in [0, 1, 2]:
         sums = np.sum(np.sum(img_arr, axis=axis), axis=(axis + 1) % 2)
@@ -37,6 +49,14 @@ def crop(img_path, mask_path, save_path):
             img_arr, list(range(remove_front_index - 1)) + list(range(remove_back_index + 2, len(sums))),
             axis=(axis + 1) % 3
         )
+        airway_mask_arr = np.delete(
+            airway_mask_arr, list(range(remove_front_index - 1)) + list(range(remove_back_index + 2, len(sums))),
+            axis=(axis + 1) % 3
+        )
+        lobe_mask_arr = np.delete(
+            lobe_mask_arr, list(range(remove_front_index - 1)) + list(range(remove_back_index + 2, len(sums))),
+            axis=(axis + 1) % 3
+        )
         validation_sums = np.sum(np.sum(img_arr, axis=axis), axis=(axis + 1) % 2)
         print(" -> ", img_arr.shape, end=" ")
     img_arr[img_arr == 0] = -1000
@@ -45,16 +65,31 @@ def crop(img_path, mask_path, save_path):
     new_mask_img.SetOrigin(img_sitk.GetOrigin())
     new_mask_img.SetSpacing(img_sitk.GetSpacing())
     _, fullflname = os.path.split(img_path)
-    sitk.WriteImage(new_mask_img, os.path.join(save_path, fullflname))
+    sitk.WriteImage(new_mask_img, os.path.join(save_path, 'RL_' + fullflname))
+
+    new_airway_mask_img = sitk.GetImageFromArray(airway_mask_arr)
+    new_airway_mask_img.SetDirection(img_sitk.GetDirection())
+    new_airway_mask_img.SetOrigin(img_sitk.GetOrigin())
+    new_airway_mask_img.SetSpacing(img_sitk.GetSpacing())
+    sitk.WriteImage(new_airway_mask_img, os.path.join(save_path, 'RL_airway_' + fullflname))
+
+    new_lobe_mask_img = sitk.GetImageFromArray(lobe_mask_arr)
+    new_lobe_mask_img.SetDirection(img_sitk.GetDirection())
+    new_lobe_mask_img.SetOrigin(img_sitk.GetOrigin())
+    new_lobe_mask_img.SetSpacing(img_sitk.GetSpacing())
+    sitk.WriteImage(new_lobe_mask_img, os.path.join(save_path, 'RL_lobe_' + fullflname))
 
 
 if __name__ == '__main__':
-    img_path = r'F:\segment_registration\Registration\original_image\imgs'
-    mask_path = r'F:\segment_registration\Registration\original_image\lobe_masks'
-    save_path = r'F:\segment_registration\Registration\original_image\RL_lobe'
-    l_img = get_listdir(img_path)
-    l_img.sort()
-    l_mask = get_listdir(mask_path)
+    img_path = r'D:\my_code\segment_registration\my_data\img'
+    lobe_mask_path = r'D:\my_code\segment_registration\my_data\mask_lobe'
+    airway_mask_path = r'D:\my_code\segment_registration\my_data\mask_airway'
+    save_path = r'D:\my_code\segment_registration\my_data'
+    img = get_listdir(img_path)
+    img.sort()
+    l_mask = get_listdir(lobe_mask_path)
     l_mask.sort()
-    for i in tqdm.trange(len(l_img)):
-        crop(l_img[i], l_mask[i], save_path)
+    a_mask = get_listdir(airway_mask_path)
+    a_mask.sort()
+    for i in tqdm.trange(len(img)):
+        crop(img[i], l_mask[i], a_mask[i], save_path)
