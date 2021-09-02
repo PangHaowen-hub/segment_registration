@@ -4,35 +4,7 @@ from tqdm import tqdm
 import SimpleITK as sitk
 
 
-class Cluster(object):
-    cluster_index = 1
-
-    def __init__(self, h, w, c, l=0):
-        self.update(h, w, c, l)
-        self.pixels = []
-        self.no = self.cluster_index
-        Cluster.cluster_index += 1
-
-    def update(self, h, w, c, l):
-        self.h = h
-        self.w = w
-        self.c = c
-        self.l = l
-
-    def __str__(self):
-        return "{},{},{},{} ".format(self.h, self.w, self.c, self.l)
-
-    def __repr__(self):
-        return self.__str__()
-
-
 class SLICProcessor(object):
-
-    def make_cluster(self, h, w, c):
-        h = int(h)
-        w = int(w)
-        c = int(c)
-        return Cluster(h, w, c, self.data[h][w][c])
 
     def __init__(self, filename):
         self.img = sitk.ReadImage(filename)

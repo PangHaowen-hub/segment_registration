@@ -9,3 +9,9 @@
 输出一个图像：肺段mask
 
 **unify_shape.py 统一各图像的shape**
+
+**segmens_segmentation.py每个肺段支气管选一个点为参考点**
+
+**segmens_segmentation_new.py每个肺段支气管中所有点都为参考点**
+
+**segmens_segmentation_all.py分割18个肺段，每个肺段支气管中所有点都为参考点**
