@@ -2,7 +2,6 @@ import SimpleITK as sitk
 import os
 import numpy as np
 import tqdm
-import copy
 
 
 def get_listdir(path):

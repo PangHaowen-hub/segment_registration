@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from tqdm import trange
 from tqdm import tqdm
@@ -35,9 +34,8 @@ class SLICProcessor(object):
         c = int(c)
         return Cluster(h, w, c, self.data[h][w][c])
 
-    def __init__(self, filename, K, M):
+    def __init__(self, filename, K):
         self.K = K  # 分为5类
-        self.M = M
         self.img = sitk.ReadImage(filename)
         self.data = sitk.GetArrayFromImage(self.img)
         index6 = np.argwhere(self.data == 6)
@@ -98,7 +96,7 @@ if __name__ == '__main__':
     img = sitk.ReadImage('./my_data/RL_lobe_img.nii.gz')  # lobe_mask
     data = sitk.GetArrayFromImage(img)
 
-    p = SLICProcessor('./my_data/RL_airway_img.nii.gz', 5, 100)
+    p = SLICProcessor('./my_data/RL_airway_img.nii.gz', 5)
     p.init_clusters()  # 创建种子点
     p.assignment()
     p.sum_DS[data == 0] = 0
