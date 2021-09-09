@@ -2,6 +2,16 @@ import numpy as np
 from tqdm import trange
 from tqdm import tqdm
 import SimpleITK as sitk
+import os
+
+
+def get_listdir(path):
+    tmp_list = []
+    for file in os.listdir(path):
+        if os.path.splitext(file)[1] == '.gz':
+            file_path = os.path.join(path, file)
+            tmp_list.append(file_path)
+    return tmp_list
 
 
 class Cluster(object):
@@ -38,17 +48,18 @@ class SLICProcessor(object):
         self.K = K  # 分为5类
         self.img = sitk.ReadImage(filename)
         self.data = sitk.GetArrayFromImage(self.img)
-        index6 = np.argwhere(self.data == 6)
-        index15 = np.argwhere(self.data == 15)
-        index18 = np.argwhere(self.data == 18)
-        index19 = np.argwhere(self.data == 19)
-        index20 = np.argwhere(self.data == 20)
+        index_list = np.unique(self.data)
+        index0 = np.argwhere(self.data == index_list[0])
+        index1 = np.argwhere(self.data == index_list[1])
+        index2 = np.argwhere(self.data == index_list[2])
+        index3 = np.argwhere(self.data == index_list[3])
+        index4 = np.argwhere(self.data == index_list[4])
         self.image_height = self.data.shape[0]
         self.image_width = self.data.shape[1]
         self.image_channel = self.data.shape[2]
         self.clusters = []
         self.dis = np.full((self.image_height, self.image_width, self.image_channel), np.inf)
-        self.init_clusters_list = [index6[0], index15[0], index18[0], index19[0], index20[0]]
+        self.init_clusters_list = [index0[0], index1[0], index2[0], index3[0], index4[0]]
 
     def init_clusters(self):  # 创建种子点
         for cinit_lusters_pos in self.init_clusters_list:
@@ -93,13 +104,21 @@ class SLICProcessor(object):
 
 
 if __name__ == '__main__':
-    img = sitk.ReadImage('./my_data/RL_lobe_img.nii.gz')  # lobe_mask
-    data = sitk.GetArrayFromImage(img)
 
-    p = SLICProcessor('./my_data/RL_airway_img.nii.gz', 5)
-    p.init_clusters()  # 创建种子点
-    p.assignment()
-    p.sum_DS[data == 0] = 0
-    name = 'RL_segments_img.nii.gz'
-    p.save_current_image(name)
-    print('图片保存至:{}'.format(name))
+    RL_lobe_mask_path = r'F:\segment_registration\Registration\original_image\mask_RL_lobe'
+    lobe_mask_list = get_listdir(RL_lobe_mask_path)
+    lobe_mask_list.sort()
+    RL_bronchi_mask_path = r'F:\segment_registration\Registration\original_image\mask_RL_bronchi'
+    RL_bronchi_mask_list = get_listdir(RL_bronchi_mask_path)
+    RL_bronchi_mask_list.sort()
+    save_path = r'F:\segment_registration\Registration\original_image\segments_segmentation'
+    for i in range(30, len(lobe_mask_list)):
+        lobe_mask = sitk.ReadImage(lobe_mask_list[i])
+        lobe_data = sitk.GetArrayFromImage(lobe_mask)
+        p = SLICProcessor(RL_bronchi_mask_list[i], 5)
+        p.init_clusters()  # 创建种子点
+        p.assignment()
+        p.sum_DS[lobe_data == 0] = 0
+        _, fullflname = os.path.split(RL_bronchi_mask_list[i])
+        p.save_current_image(os.path.join(save_path, fullflname))
+        print('图片保存至:{}'.format(os.path.join(save_path, fullflname)))

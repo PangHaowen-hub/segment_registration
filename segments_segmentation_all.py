@@ -34,8 +34,8 @@ class SLICProcessor(object):
 
 
 if __name__ == '__main__':
-    p = SLICProcessor(airway_mask='./my_data/mask_airway/airway_segments_mask.nii.gz',
-                      lobe_mask='./my_data/mask_lobe/lobe_mask.nii.gz')
+    p = SLICProcessor(airway_mask=r'D:\my_code\airway_segmentation\stage-34\0000001\airway_segments_mask.nii.gz',
+                      lobe_mask=r'F:\segment_registration\Registration\original_image\lobe_masks\lobe512_001.nii.gz')
     p.assignment(1)
     p.assignment(2)
     p.assignment(3)

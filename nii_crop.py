@@ -22,13 +22,8 @@ def crop(img_path, lobe_mask_path, airway_mask_path, save_path):
     airway_mask_arr = sitk.GetArrayFromImage(airway_mask_sitk)
     img_arr[lobe_mask_arr != 3] = 0
     lobe_mask_arr[lobe_mask_arr != 3] = 0
-    temp = np.zeros_like(airway_mask_arr)
-    temp[airway_mask_arr == 6] = 6
-    temp[airway_mask_arr == 15] = 15
-    temp[airway_mask_arr == 18] = 18
-    temp[airway_mask_arr == 19] = 19
-    temp[airway_mask_arr == 20] = 20
-    airway_mask_arr = temp
+    airway_mask_arr[airway_mask_arr == 1] = 0
+    airway_mask_arr[lobe_mask_arr != 3] = 0
     print(img_arr.shape, end=" ")
     for axis in [0, 1, 2]:
         sums = np.sum(np.sum(img_arr, axis=axis), axis=(axis + 1) % 2)
@@ -56,7 +51,6 @@ def crop(img_path, lobe_mask_path, airway_mask_path, save_path):
             lobe_mask_arr, list(range(remove_front_index - 1)) + list(range(remove_back_index + 2, len(sums))),
             axis=(axis + 1) % 3
         )
-        validation_sums = np.sum(np.sum(img_arr, axis=axis), axis=(axis + 1) % 2)
         print(" -> ", img_arr.shape, end=" ")
     img_arr[img_arr == 0] = -1000
     new_mask_img = sitk.GetImageFromArray(img_arr)
@@ -70,7 +64,7 @@ def crop(img_path, lobe_mask_path, airway_mask_path, save_path):
     new_airway_mask_img.SetDirection(img_sitk.GetDirection())
     new_airway_mask_img.SetOrigin(img_sitk.GetOrigin())
     new_airway_mask_img.SetSpacing(img_sitk.GetSpacing())
-    sitk.WriteImage(new_airway_mask_img, os.path.join(save_path, 'RL_airway_' + fullflname))
+    sitk.WriteImage(new_airway_mask_img, os.path.join(save_path, 'RL_bronchi_' + fullflname))
 
     new_lobe_mask_img = sitk.GetImageFromArray(lobe_mask_arr)
     new_lobe_mask_img.SetDirection(img_sitk.GetDirection())
@@ -80,15 +74,15 @@ def crop(img_path, lobe_mask_path, airway_mask_path, save_path):
 
 
 if __name__ == '__main__':
-    img_path = r'D:\my_code\segment_registration\my_data\img'
-    lobe_mask_path = r'D:\my_code\segment_registration\my_data\mask_lobe'
-    airway_mask_path = r'D:\my_code\segment_registration\my_data\mask_airway'
-    save_path = r'D:\my_code\segment_registration\my_data'
+    img_path = r'F:\segment_registration\Registration\original_image\imgs'
+    lobe_mask_path = r'F:\segment_registration\Registration\original_image\mask_lobe'
+    bronchi_mask_path = r'F:\segment_registration\Registration\original_image\mask_bronchi'
+    save_path = r'F:\segment_registration\Registration\original_image\mask_RL_bronchi'
     img = get_listdir(img_path)
     img.sort()
     l_mask = get_listdir(lobe_mask_path)
     l_mask.sort()
-    a_mask = get_listdir(airway_mask_path)
+    a_mask = get_listdir(bronchi_mask_path)
     a_mask.sort()
     for i in tqdm.trange(len(img)):
         crop(img[i], l_mask[i], a_mask[i], save_path)
